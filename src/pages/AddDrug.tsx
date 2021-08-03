@@ -1,17 +1,45 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Button, ImageBackground, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as ImagePicker from 'expo-image-picker';
 import fundoBlur from '../images/fundo-blur.png';
 import {AddDrugHeader} from '../components/AddDrugHeader';
+import { useEffect } from 'react';
 
-const formatDate = (date: Date) => {
+const labelDoses = [
+  'Comprimido(s)',
+  'Gramas (gm)',
+  'Miligramas (mg)',
+  'Mililitros (ml)',
+  'Gotas',
+  'Spray',
+];
+
+const addZero = (time: number) => {  
+  
+  if (time < 10) {
+    let result = '0' + time;
+    return result;
+  }
+
+  return time;
 
 }
 
+const formatDate = (date: Date) => {
+  const time = [
+    addZero(date.getHours()), 
+    addZero(date.getMinutes())
+  ]
+
+  const formatTime = time.join(':')
+
+  return formatTime;
+}
 
 export default function AddDrug() {
   const [isDatePickerVisible, setIsDatePickerVisibility] = useState(false);
@@ -19,6 +47,14 @@ export default function AddDrug() {
   const [dose, setDose] = useState();
   const [images, setImages] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    let date = new Date();
+
+    const result = formatDate(date);
+    
+    setTime(result);
+  }, []);
 
   const showDatePicker = () => {
     setIsDatePickerVisibility(true);
@@ -29,13 +65,9 @@ export default function AddDrug() {
   }
 
   const handleConfirm = (date: Date) => {
-    formatDate(date);
+    const result = formatDate(date);    
 
-    const t = [date.getHours(), date.getMinutes()]
-
-    const ti = t.join(':')
-    console.log(ti)
-    setTime(ti)
+    setTime(result);
 
     hideDatePicker();
   }
@@ -66,121 +98,212 @@ export default function AddDrug() {
 
   return (
     <ScrollView
+      style={styles.scrollView}
       keyboardShouldPersistTaps='handled'
     >
-
-      <StatusBar style={'auto'} />
-
-      <Text>Nome do remédio</Text>
-      <TextInput />
-
-      <Text>Dosagem</Text>
-      <Picker
-        style={{
-          color: 'blue',
-          width: 200,
-        }}
-        mode='dropdown'
-        selectedValue={dose}
-        itemStyle={{
-          color: 'red',
-          backgroundColor: 'black'
-        }}
-        dropdownIconColor='red'
-        numberOfLines={2}
-        onValueChange={
-          (itemValue) => {
-            setDose(itemValue)
-          }
-        }
+      <KeyboardAvoidingView
+        behavior='padding'
       >
-        <Picker.Item label='Comprimido' value='Comprimido' style={{ backgroundColor: 'cyan', color: 'red' }} />
-        <Picker.Item label='Gotas' value='Gotas' />
-        <Picker.Item label='Gotas' value='Gotas' />
-        <Picker.Item label='Gotas' value='Gotas' />
-      </Picker>
+        <StatusBar style={'auto'} />
 
-      <Text>Quantidade</Text>
-      <TextInput
-        keyboardType='number-pad'
+        {/* Nome do remédio */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={styles.styleText}>Nome do remédio</Text>
+          <TextInput style={styles.styleTextInput}/>
+        </View>
 
-      />
+        {/* Dosagem e Quantidade */}
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginBottom: 15
+        }}>
 
-      {/* <Text>Horário</Text> */}
-      <Button title='teste' onPress={showDatePicker} />
-      <Text>{time}</Text>
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode='time'
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-      />
+          {/* Dosagem */}
+          <View>
+            <Text style={styles.styleText}>Dosagem</Text>
+            <Picker
+              style={{
+                color: 'black',
+                width: 180,
+              }}
+              mode='dropdown'
+              selectedValue={dose}
+              onValueChange={
+                (itemValue) => {
+                  setDose(itemValue)
+                }
+              }
+            >
+              {
+                labelDoses.map(label => {
+                  return <Picker.Item label={label} value={label} key={label} />
+                })
+              }
+            </Picker>
+          </View>
 
-      <Text>Opcionais</Text>
+          {/* Quantidade */}
+          <View style={{
+            alignItems: 'center'
+          }}>
+            <Text style={styles.styleText}>Quantidade</Text>
+            <TextInput
+              keyboardType='number-pad'
+              style={[styles.styleTextInput, {
+                width: 50,
+                textAlign: 'center'
+              }]}
+            />
+          </View>
+        </View>
 
-      <Text>Sobre</Text>
-      <TextInput multiline={true} />
-
-      <Text>Imagens</Text>
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-      >
-        <Text>Add Image</Text>
-        <Modal
-          animationType='fade'
-          transparent={true}
-          statusBarTranslucent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible)
-          }}
-        >
-          {/* <AddDrugHeader /> */}
-          <ImageBackground 
-            source={fundoBlur}
-            resizeMode='cover'
-            style={styles.centeredView}
-            blurRadius={50}
+        {/* Horário */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={styles.styleText}>Horário</Text>
+          <Pressable
+            onPress={showDatePicker} 
+            style={{
+              borderColor: '#8fa7b3',
+              borderBottomWidth: 2,
+              width: 50,
+              alignItems: 'center',
+              marginTop: 10
+            }}
           >
-            <View style={styles.modalView}>
+            <Text>{time}</Text>
+          </Pressable>
 
-              
-                <Pressable
-                  onPress={() => {
-                    setModalVisible(!modalVisible)
-                  }}
-                >
-                  <Text>Escolha da galeria</Text>
-                </Pressable>
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode='time'
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+        </View>
 
-                <Pressable
-                  onPress={() => {
-                    setModalVisible(!modalVisible)
-                  }}
-                >
-                  <Text>Tirar uma foto</Text>
-                </Pressable>
+        {/* Opcionais */}
+
+        {/* Sobre */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={styles.styleText}>
+            Sobre - <Text style={{fontStyle: 'italic', fontSize: 15}}>Opcional</Text>
+          </Text>
+          <TextInput 
+            multiline={true} 
+            style={styles.styleTextInput}
+          />
+        </View>
+
+        {/* Observação */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={styles.styleText}>
+            Observação - <Text style={{fontStyle: 'italic', fontSize: 15}}>Opcional</Text>
+          </Text>
+          <TextInput 
+            multiline={true} 
+            style={styles.styleTextInput}
+          />
+        </View>
+
+        {/* Imagens */}
+        <Text style={styles.styleText}>
+          Imagens - <Text style={{fontStyle: 'italic', fontSize: 15}}>Opcional</Text>
+        </Text>
+
+        <TouchableOpacity
+          style={styles.addImage}
+          onPress={() => setModalVisible(true)}
+        >
+
+          <View >
+            <Feather name="plus" size={20} color="#26B9FE" />
+          </View>
+
+          <Modal
+            animationType='fade'
+            transparent={true}
+            statusBarTranslucent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+              setModalVisible(!modalVisible)
+            }}
+          >
+            {/* <AddDrugHeader /> */}
+            <ImageBackground 
+              source={fundoBlur}
+              resizeMode='cover'
+              style={styles.centeredView}
+              blurRadius={50}
+            >
+              <View style={styles.modalView}>
                 
-                <Pressable
-                  onPress={() => {
-                    setModalVisible(!modalVisible)
-                  }}
-                >
-                  <Text>Sair</Text>
-                </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setModalVisible(!modalVisible)
+                    }}
+                  >
+                    <Text>Escolha da galeria</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setModalVisible(!modalVisible)
+                    }}
+                  >
+                    <Text>Tirar uma foto</Text>
+                  </Pressable>
+                  
+                  <Pressable
+                    onPress={() => {
+                      setModalVisible(!modalVisible)
+                    }}
+                  >
+                    <Text>Sair</Text>
+                  </Pressable>
 
 
-            </View>
-          </ImageBackground>
-        </Modal>
-      </TouchableOpacity>
+              </View>
+            </ImageBackground>
+          </Modal>
+        </TouchableOpacity>
 
+      </KeyboardAvoidingView>
     </ScrollView>
   );
 
 }
 
 const styles = StyleSheet.create({
+
+  scrollView: {
+    padding: 30,
+  },
+
+  styleText: {
+    color: '#8fa7b3',
+    fontFamily: 'Nunito_600SemiBold',
+    fontSize: 17
+  },
+
+  styleTextInput: {
+    borderColor: '#8fa7b3',
+    borderBottomWidth: 2,
+    paddingLeft: 5,
+  },
+
+  addImage: {
+    backgroundColor: '#FAFAFA',
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: '#26B9FE',
+    marginTop: 10
+  },
 
   centeredView: {
     flex: 1,
