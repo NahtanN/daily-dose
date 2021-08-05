@@ -1,36 +1,55 @@
-import React from 'react';
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { FontAwesome5, FontAwesome, Feather } from '@expo/vector-icons';
 import { BorderlessButton } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
-const AddDrugHeader = () => {
+interface IHeader {
+  onGoBack?: (res: boolean) => void;
+}
+
+const AddDrugHeader = ({ onGoBack }: IHeader) => {
   const navigation = useNavigation();
   
   const handleCloseButton = () => {
     alert('Deseja apagar o rascunho?');
   }
 
+  const handleArrowLeftButton = () => {
+    
+    onGoBack
+      ? onGoBack(true)
+      : navigation.goBack()
+    
+  }
+
   return (
     <View
       style={styles.header}
     >
-      <BorderlessButton
-        onPress={() => navigation.goBack()}
+      <TouchableOpacity
+        onPress={handleArrowLeftButton}
       >
         <Feather name="arrow-left" size={25} color="#15b6d6" />
-      </BorderlessButton>
+      </TouchableOpacity>
       
       <Text
         style={styles.title}
       >
-        Adicionar Remédio</Text>
+        Adicionar Remédio
+      </Text>
 
-      <BorderlessButton
-        onPress={handleCloseButton}
-      >
-        <Feather name="x" size={24} color="#ff669d" />
-      </BorderlessButton>
+      {
+        !onGoBack
+          ? (
+            <TouchableOpacity
+              onPress={handleCloseButton}
+            >
+              <Feather name="x" size={24} color="#ff669d" />
+            </TouchableOpacity>
+          )
+          : <Text style={{marginLeft: 25}}></Text>
+      }
     </View>
   );
 
