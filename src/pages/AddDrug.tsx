@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Button, Image, ImageBackground, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, ImageBackground, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { Picker } from '@react-native-picker/picker';
@@ -9,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import fundoBlur from '../images/fundo-blur.png';
 import { AddDrugHeader } from '../components/AddDrugHeader';
 import { useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { DisplayImage } from '../components/DisplayImage';
 
 const labelDoses = [
   'Comprimido(s)',
@@ -49,7 +49,8 @@ export default function AddDrug() {
   const [images, setImages] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageModal, setImageModal] = useState(false);
-  const [possibleDelete, setPossibleDelete] = useState<string>();
+  const [selectedImage, setSelectedImage] = useState<string>('');
+  const [displayImage, setDisplayImage] = useState(false);
 
   useEffect(() => {
     let date = new Date();
@@ -127,6 +128,7 @@ export default function AddDrug() {
     <ScrollView
       style={styles.scrollView}
       keyboardShouldPersistTaps='handled'
+      enabled={false}
     >
       <KeyboardAvoidingView
         behavior='padding'
@@ -312,34 +314,41 @@ export default function AddDrug() {
               setImageModal(!imageModal)
             }}
           >
-            <View style={styles.centeredView}>
+            <ImageBackground
+              source={fundoBlur}
+              resizeMode='cover'
+              style={styles.centeredView}
+              blurRadius={50}
+            >
+              <View style={styles.centeredView}>
 
-              <View style={styles.modalView}>
+                <View style={styles.modalView}>
 
-                <Text style={{ color: 'black', fontFamily: 'Nunito_600SemiBold', fontSize: 17 }}>Deseja apagar a foto?</Text>
+                  <Text style={{ color: 'black', fontFamily: 'Nunito_600SemiBold', fontSize: 17 }}>Deseja apagar a foto?</Text>
 
-                <TouchableOpacity
-                  style={[styles.deleteImage, { backgroundColor: '#26B9FE' }]}
-                  onPress={() => {
+                  <TouchableOpacity
+                    style={[styles.deleteImage, { backgroundColor: '#26B9FE' }]}
+                    onPress={() => {
 
-                    setImages(images.filter(image => image != possibleDelete))
-                    
-                    setImageModal(!imageModal)
-                  }}
-                >
-                  <Text style={{ color: '#FAFAFA', fontFamily: 'Nunito_600SemiBold', fontSize: 15 }}>Sim</Text>
-                </TouchableOpacity>
+                      setImages(images.filter(image => image != selectedImage))
 
-                <TouchableOpacity
-                  style={[styles.deleteImage, { backgroundColor: 'red' }]}
-                  onPress={() => setImageModal(!imageModal)}
-                >
-                  <Text style={{ color: '#FAFAFA', fontFamily: 'Nunito_600SemiBold', fontSize: 15 }}>Não</Text>
-                </TouchableOpacity>
+                      setImageModal(!imageModal)
+                    }}
+                  >
+                    <Text style={{ color: '#FAFAFA', fontFamily: 'Nunito_600SemiBold', fontSize: 15 }}>Sim</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.deleteImage, { backgroundColor: 'red' }]}
+                    onPress={() => setImageModal(!imageModal)}
+                  >
+                    <Text style={{ color: '#FAFAFA', fontFamily: 'Nunito_600SemiBold', fontSize: 15 }}>Não</Text>
+                  </TouchableOpacity>
+
+                </View>
 
               </View>
-
-            </View>
+            </ImageBackground>
           </Modal>
 
           {
@@ -348,10 +357,17 @@ export default function AddDrug() {
                 <TouchableOpacity
                   activeOpacity={0.5}
                   key={image}
-                  onLongPress={() => {
-                    setPossibleDelete(image);
+                  onPress={() => {
                     
+                    setSelectedImage(image);
+                    setDisplayImage(!displayImage);
+
+                  }}
+                  onLongPress={() => {
+
+                    setSelectedImage(image);
                     setImageModal(!imageModal);
+
                   }}
                 >
                   <Image
@@ -366,6 +382,8 @@ export default function AddDrug() {
           }
 
         </View>
+
+        <DisplayImage showModal={displayImage} uri={selectedImage} response={() => setDisplayImage(!displayImage)}/>
 
         <TouchableOpacity
           onPress={() => console.log(images)}
