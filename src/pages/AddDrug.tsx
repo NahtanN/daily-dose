@@ -129,6 +129,7 @@ export default function AddDrug() {
       style={styles.scrollView}
       keyboardShouldPersistTaps='handled'
       enabled={false}
+      showsVerticalScrollIndicator={false}
     >
       <KeyboardAvoidingView
         behavior='padding'
@@ -383,7 +384,12 @@ export default function AddDrug() {
 
         </View>
 
-        <DisplayImage showModal={displayImage} uri={selectedImage} response={() => setDisplayImage(!displayImage)}/>
+        <DisplayImage 
+          showModal={displayImage} 
+          uri={selectedImage} 
+          imagesArray={images}
+          response={() => setDisplayImage(!displayImage)}
+        />
 
         <TouchableOpacity
           onPress={() => console.log(images)}

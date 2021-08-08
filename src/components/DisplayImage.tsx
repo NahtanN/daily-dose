@@ -1,21 +1,18 @@
-import React, { useRef } from 'react';
-import { Modal, Text, View, StyleSheet, Image, Dimensions, Animated, Pressable, TouchableOpacity, PanResponderGestureState } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
-import { useState } from 'react';
-import GestureRecognizer from 'react-native-swipe-gestures';
-
+import React, { useRef, useState } from 'react';
+import { Animated, Dimensions, Image, Modal, PanResponderGestureState, StyleSheet, TouchableOpacity, View, ScrollView, Pressable, NativeScrollEvent } from 'react-native';
 
 interface IDisplayImage {
   showModal: boolean;
   uri: string;
+  imagesArray: string[];
   response: (res: boolean) => void;
 }
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const DisplayImage = ({ showModal, uri, response }: IDisplayImage) => {
+const DisplayImage = ({ showModal, uri, imagesArray, response }: IDisplayImage) => {
   const [showHeader, setShowHeader] = useState(true);
 
   const moveHeaderModal = useRef(new Animated.Value(-windowHeight)).current;
@@ -40,17 +37,9 @@ const DisplayImage = ({ showModal, uri, response }: IDisplayImage) => {
 
   }
 
-  const onSwipe = (gesture: string, state: PanResponderGestureState) => {
-    switch (gesture) {
-      case 'SWIPE_UP':
-        closeHeaderModal()
-    }
+  const handleScroll = (e: NativeScrollEvent) => {
+    // console.log(e.contentOffset.y)
   }
-
-  const config = {
-    velocityThreshold: 0.3,
-    directionalOffsetThreshold: 80
-  };
 
   showHeader
     ? openHeaderModal()
@@ -98,20 +87,44 @@ const DisplayImage = ({ showModal, uri, response }: IDisplayImage) => {
 
         </Animated.View>
 
-        <GestureRecognizer 
-          style={styles.modalView}
-          // onTouchEnd={() => setShowHeader(!showHeader)}
-          onSwipe={(direction, state) => onSwipe(direction, state)}
-          config={config}
+        <ScrollView
+          contentOffset={{
+            x: 360,
+            y: 0
+          }}
+          horizontal
+          pagingEnabled
+          removeClippedSubviews={true}
+          
+          onScroll={(e) => {
+            console.log(e.nativeEvent.contentOffset)
+          }}
         >
-          <Image
-            resizeMode={'contain'}
-            style={styles.image}
-            source={{
-              uri
-            }}
-          />
-        </GestureRecognizer>
+
+          {
+
+            imagesArray.map(imageUri => {
+              return (
+                <Pressable
+                  style={styles.modalView}
+                  onPress={() => setShowHeader(!showHeader)}
+                  key={imageUri}
+                >
+                  <Image
+                    resizeMode={'contain'}
+                    style={styles.image}
+                    source={{
+                      uri: imageUri
+                    }}
+                  />
+                </Pressable>
+
+              );
+            })
+
+          }
+
+        </ScrollView>
 
       </View>
 
@@ -179,4 +192,4 @@ const styles = StyleSheet.create({
 
 });
 
-export { DisplayImage }
+export { DisplayImage };
